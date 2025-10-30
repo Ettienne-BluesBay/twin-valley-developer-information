@@ -25,21 +25,24 @@
   }
   .controls button:hover { background:#fafafa; }
   #stage { display:grid; place-items:center; padding:16px; }
+
+  /* Updated 16:9 aspect ratio */
   #flipbook, #fallback {
-    width:min(90vw, 1200px);
-    height:calc(min(90vw, 1200px) * 0.707);
+    width:min(90vw, 1600px);
+    height:calc(min(90vw, 1600px) * 0.5625); /* 16:9 ratio */
     margin:0 auto; background:#fafafa; border-radius:10px; overflow:hidden;
     box-shadow:0 6px 30px rgba(0,0,0,.12); position:relative;
   }
+
   .pf-page canvas, .pf-page img { width:100%; height:100%; object-fit:contain; background:#fff; display:block; }
-  /* Subtle contact footer overlay */
+
   .footer-overlay {
     position:absolute; left:0; right:0; bottom:0;
     background:rgba(255,255,255,.75); backdrop-filter:blur(2px);
     font-size:12px; color:#222; text-align:center; padding:6px 10px;
     white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
   }
-  /* Loading overlay */
+
   #loading {
     position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
     background:linear-gradient(180deg, rgba(255,255,255,.85), rgba(255,255,255,.65));
@@ -85,7 +88,7 @@
   </footer>
 </div>
 
-<!-- PDF.js (stable UMD build that works on GitHub Pages) -->
+<!-- PDF.js (stable UMD build for GitHub Pages) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
 <script>
   pdfjsLib.GlobalWorkerOptions.workerSrc =
@@ -96,17 +99,14 @@
 <script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.min.js"></script>
 
 <script>
-  // --- Edit contacts (subtle footer) ---
+  // Subtle footer contact details
   const CONTACTS = {
     primary:  { name: "Ettienne Lanell", phone: "", email: "", note: "RE/MAX Independent" },
     secondary:{ name: "Alta",            phone: "", email: "", note: "Co-agent" }
   };
 
-  // Try common filenames automatically
-  const PDF_CANDIDATES = [
-    "Twin Valley Presentation.pdf",
-    "brochure.pdf"
-  ];
+  // Try both possible file names (with and without spaces)
+  const PDF_CANDIDATES = ["Twin Valley Presentation.pdf", "brochure.pdf"];
 
   const host     = document.getElementById("flipbook");
   const loading  = document.getElementById("loading");
@@ -130,7 +130,7 @@
       try {
         const res = await fetch(encodeURI(name), { method: "HEAD", cache: "no-store" });
         if (res.ok) return name;
-      } catch (_) { /* ignore and try next */ }
+      } catch (_) { /* ignore */ }
     }
     return null;
   }
@@ -138,7 +138,6 @@
   async function loadPDF_viaPDFjs() {
     const task = pdfjsLib.getDocument({ url: PDF_PATH });
     const pdf  = await task.promise;
-
     for (let i = 1; i <= pdf.numPages; i++) {
       const page = await pdf.getPage(i);
       const vp = page.getViewport({ scale: 1.5 });
@@ -152,7 +151,7 @@
 
   function initFlip() {
     flip = new St.PageFlip(host, {
-      width: 800, height: 1131, size: "stretch",
+      width: 1280, height: 720, size: "stretch",
       usePortrait: true, showCover: false,
       maxShadowOpacity: .2, mobileScrollSupport: true
     });
@@ -168,7 +167,6 @@
     errorBox.style.display = "block";
     errorBox.innerHTML = msg;
     if (enableFallback && PDF_PATH) {
-      // basic embedded fallback — ensures visitors still see the brochure
       fallback.style.display = "block";
       host.style.display = "none";
       fallback.innerHTML = `<iframe src="${PDF_PATH}" loading="lazy" title="Twin Valley Developer Information"></iframe>`;
@@ -179,22 +177,19 @@
     try {
       const found = await findExistingPdf();
       if (!found) {
-        throw new Error("PDF not found. Ensure the file is in the repo root named “Twin Valley Presentation.pdf” or rename it to “brochure.pdf”.");
+        throw new Error("PDF not found. Please name it 'Twin Valley Presentation.pdf' or 'brochure.pdf' in the repo root.");
       }
       PDF_PATH_RAW = found;
       PDF_PATH = encodeURI(PDF_PATH_RAW);
 
       await loadPDF_viaPDFjs();
+      if (images.length === 0) throw new Error("PDF rendered zero pages.");
 
-      if (images.length === 0) {
-        throw new Error("PDF rendered zero pages.");
-      }
       initFlip();
     } catch (e) {
       console.error(e);
       showError(
-        `Could not render the PDF. <br><br><b>Quick fix:</b> rename your file to <code>brochure.pdf</code> in the repo root and refresh. 
-         <br><br>Technical: ${e && e.message ? e.message : e}`,
+        `Could not render the PDF. <br><br><b>Quick fix:</b> rename your file to <code>brochure.pdf</code> and refresh.<br><br>Technical: ${e.message || e}`,
         true
       );
     } finally {
@@ -207,8 +202,8 @@
   document.getElementById("prev").onclick   = () => flip?.flipPrev();
   document.getElementById("next").onclick   = () => flip?.flipNext();
   document.getElementById("spread").onclick = () => {
-    const i   = flip?.getCurrentPageIndex?.() || 0;
-    const cfg = flip?.getSettings?.() || { width:800, height:1131, size:"stretch", usePortrait:true, showCover:false };
+    const i = flip?.getCurrentPageIndex?.() || 0;
+    const cfg = flip?.getSettings?.() || { width:1280, height:720, size:"stretch", usePortrait:true, showCover:false };
     if (flip) flip.destroy();
     flip = new St.PageFlip(host, { ...cfg, usePortrait: !cfg.usePortrait });
     flip.loadFromImages(images);
