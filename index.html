@@ -1,83 +1,122 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang='en'>
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Twin Valley Developer Information</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/css/page-flip.css">
-  <style>
-    body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background:#f7f7f7; color:#111; }
-    header, footer { background:#fff; border:1px solid #eee; padding:8px 14px; display:flex; align-items:center; justify-content:space-between; }
-    .controls button { margin:0 3px; }
-    #flipbook { width:90vw; height:calc(90vw * 0.707); max-width:1200px; margin:20px auto; box-shadow:0 4px 20px rgba(0,0,0,0.15); border-radius:10px; overflow:hidden; background:#fafafa; position:relative; }
-    .pf-page canvas { width:100%; height:100%; object-fit:contain; background:#fff; }
-    .footer-overlay { position:absolute; bottom:0; left:0; right:0; background:rgba(255,255,255,0.75); font-size:12px; text-align:center; padding:5px 0; color:#333; backdrop-filter:blur(3px); }
-  </style>
+<meta charset='utf-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1'>
+<title>Twin Valley Developer Information</title>
+<link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/css/page-flip.css'>
+<style>
+  :root { --accent:#eaeaea; --muted:#666; }
+  body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background:#f7f7f7; color:#111; }
+  header, footer { background:#fff; border:1px solid #eee; padding:8px 14px; display:flex; align-items:center; justify-content:space-between; }
+  .controls button { margin:0 3px; }
+  #shell { display:grid; grid-template-rows:auto 1fr auto; min-height:100vh; }
+  #stage { display:grid; place-items:center; padding:16px; }
+  #flipbook { width:90vw; height:calc(90vw * 0.707); max-width:1200px; margin:0 auto; box-shadow:0 4px 20px rgba(0,0,0,0.15); border-radius:10px; overflow:hidden; background:#fafafa; position:relative; }
+  .pf-page canvas { width:100%; height:100%; object-fit:contain; background:#fff; }
+  .footer-overlay { position:absolute; bottom:0; left:0; right:0; background:rgba(255,255,255,0.75); font-size:12px; text-align:center; padding:5px 0; color:#333; backdrop-filter:blur(3px); }
+  #loading { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:linear-gradient(180deg, rgba(255,255,255,0.85), rgba(255,255,255,0.65)); font-size:14px; color:#333; }
+  .spinner { width:28px; height:28px; border:3px solid var(--accent); border-top-color:#999; border-radius:50%; animation:spin 1s linear infinite; margin-right:10px;}
+  @keyframes spin { to { transform: rotate(360deg); } }
+  #error { display:none; color:#b00020; background:#fff; border:1px solid var(--accent); padding:8px 12px; border-radius:8px; }
+</style>
 </head>
 <body>
+<div id='shell'>
   <header>
     <div><strong>Twin Valley Developer Information</strong></div>
-    <div class="controls">
-      <button id="prev">◀</button>
-      <button id="next">▶</button>
-      <button id="spread">Spread</button>
-      <button id="pdf">PDF</button>
+    <div class='controls'>
+      <button id='prev'>◀</button>
+      <button id='next'>▶</button>
+      <button id='spread'>Spread</button>
+      <button id='pdf'>PDF</button>
     </div>
   </header>
 
-  <div id="flipbook"></div>
+  <div id='stage'>
+    <div id='flipbook'>
+      <div id='loading'><div class='spinner'></div> <span>Loading Twin Valley Developer Information…</span></div>
+    </div>
+  </div>
 
   <footer>
-    <span id="pageinfo">Loading...</span>
+    <span id='pageinfo'>Loading…</span>
     <span>Powered by PDF.js + PageFlip</span>
   </footer>
+</div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.7.76/pdf.min.js"></script>
-  <script>pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.7.76/pdf.worker.min.js";</script>
-  <script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.min.js"></script>
-  <script>
-    const CONTACTS = {
-      primary: { name: "Ettienne Lanell", phone: "", email: "", note: "RE/MAX Independent" },
-      secondary: { name: "Alta", phone: "", email: "", note: "Co-agent" }
-    };
-    const PDF_PATH = "Twin Valley Presentation.pdf";
-    const host = document.getElementById('flipbook');
-    let pdf, flip, images=[], single=false;
-    const pageinfo = document.getElementById('pageinfo');
+<script src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.7.76/pdf.min.js'></script>
+<script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.7.76/pdf.worker.min.js';</script>
+<script src='https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.min.js'></script>
+<script>
+  const CONTACTS = {
+    primary: { name: 'Ettienne Lanell', phone: '', email: '', note: 'RE/MAX Independent' },
+    secondary: { name: 'Alta', phone: '', email: '', note: 'Co-agent' }
+  };
+  const PDF_PATH_RAW = 'Twin Valley Presentation.pdf';
+  const PDF_PATH = encodeURI(PDF_PATH_RAW);
 
-    function footerOverlay() {
-      const f = document.createElement('div');
-      f.className = 'footer-overlay';
-      f.innerText = `${CONTACTS.primary.name} • ${CONTACTS.primary.email || ''} • ${CONTACTS.secondary.name} • ${CONTACTS.secondary.email || ''}`;
-      host.appendChild(f);
+  const host = document.getElementById('flipbook');
+  const loading = document.getElementById('loading');
+  const pageinfo = document.getElementById('pageinfo');
+  let pdf, flip, images=[];
+
+  function footerOverlay() {
+    const f = document.createElement('div');
+    f.className = 'footer-overlay';
+    const left = [CONTACTS.primary.name, CONTACTS.primary.phone, CONTACTS.primary.email].filter(Boolean).join(' • ');
+    const right = [CONTACTS.secondary.name, CONTACTS.secondary.phone, CONTACTS.secondary.email].filter(Boolean).join(' • ');
+    f.textContent = [left, right].filter(Boolean).join('  •  ');
+    host.appendChild(f);
+  }
+
+  async function loadPDF() {
+    const task = pdfjsLib.getDocument({ url: PDF_PATH, withCredentials: false, verbosity: 1 });
+    pdf = await task.promise;
+    for(let i=1;i<=pdf.numPages;i++){
+      const page = await pdf.getPage(i);
+      const vp = page.getViewport({scale:1.6});
+      const c = document.createElement('canvas');
+      c.width = vp.width; c.height = vp.height;
+      const ctx = c.getContext('2d', { alpha:false });
+      await page.render({canvasContext:ctx, viewport:vp}).promise;
+      images.push(c.toDataURL('image/jpeg',0.9));
     }
+  }
 
-    async function loadPDF() {
-      pdf = await pdfjsLib.getDocument(PDF_PATH).promise;
-      for(let i=1;i<=pdf.numPages;i++){
-        const page = await pdf.getPage(i);
-        const vp = page.getViewport({scale:1.6});
-        const c = document.createElement('canvas');
-        c.width = vp.width; c.height = vp.height;
-        await page.render({canvasContext:c.getContext('2d'), viewport:vp}).promise;
-        images.push(c.toDataURL('image/jpeg',0.9));
-      }
+  function initFlip() {
+    flip = new St.PageFlip(host, { width:800, height:1131, size:'stretch', usePortrait:true, showCover:false, maxShadowOpacity:.2 });
+    flip.loadFromImages(images);
+    footerOverlay();
+    pageinfo.textContent = `Page 1 / ${flip.getPageCount()}`;
+    flip.on('flip', ()=>{ pageinfo.textContent = `Page ${flip.getCurrentPageIndex()+1} / ${flip.getPageCount()}`; });
+  }
+
+  async function main(){
+    try {
+      await loadPDF();
+      initFlip();
+    } catch (e) {
+      console.error(e);
+      loading.innerHTML = "<div id='error'>Could not load the PDF. Please use the PDF button while we investigate.</div>";
+    } finally {
+      loading.style.display = 'none';
     }
+  }
+  main();
 
-    function initFlip() {
-      flip = new St.PageFlip(host, { width:800, height:1131, size:'stretch', usePortrait:true, showCover:false });
-      flip.loadFromImages(images);
-      footerOverlay();
-      flip.on('flip', ()=>{ pageinfo.textContent = `Page ${flip.getCurrentPageIndex()+1} / ${flip.getPageCount()}`; });
-    }
-
-    async function main(){ await loadPDF(); initFlip(); }
-    main();
-
-    document.getElementById('prev').onclick = ()=>flip.flipPrev();
-    document.getElementById('next').onclick = ()=>flip.flipNext();
-    document.getElementById('spread').onclick = ()=>{ const i=flip.getCurrentPageIndex(); const c=flip.getSettings(); flip.destroy(); flip=new St.PageFlip(host,{...c,usePortrait:!c.usePortrait}); flip.loadFromImages(images); footerOverlay(); flip.turnToPage(i); };
-    document.getElementById('pdf').onclick = ()=>{ const a=document.createElement('a'); a.href=PDF_PATH; a.download=PDF_PATH; a.click(); };
-  </script>
+  document.getElementById('prev').onclick = ()=>flip?.flipPrev();
+  document.getElementById('next').onclick = ()=>flip?.flipNext();
+  document.getElementById('spread').onclick = ()=>{
+    const i=flip?.getCurrentPageIndex?.()||0;
+    const c=flip?.getSettings?.()||{ width:800, height:1131, size:'stretch', usePortrait:true, showCover:false };
+    if (flip) flip.destroy();
+    flip = new St.PageFlip(host,{...c, usePortrait: !c.usePortrait});
+    flip.loadFromImages(images);
+    footerOverlay();
+    if (i) flip.turnToPage(i);
+  };
+  document.getElementById('pdf').onclick = ()=>{ const a=document.createElement('a'); a.href=PDF_PATH; a.download=PDF_PATH_RAW; a.click(); };
+</script>
 </body>
 </html>
