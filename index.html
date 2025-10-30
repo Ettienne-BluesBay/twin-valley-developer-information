@@ -1,75 +1,82 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Twin Valley Developer Information</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Twin Valley Developer Information</title>
 
-  <!-- PageFlip CSS -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/css/page-flip.css">
-
-  <style>
-    :root { --accent:#eaeaea; --muted:#666; }
-    * { box-sizing: border-box; }
-    body {
-      margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      background:#f7f7f7; color:#111;
-    }
-    #shell { min-height:100vh; display:grid; grid-template-rows:auto 1fr auto; }
-    header, footer {
-      background:#fff; border:1px solid #eee; padding:8px 14px;
-      display:flex; align-items:center; justify-content:space-between;
-    }
-    .controls { display:flex; gap:6px; }
-    .controls button {
-      appearance:none; border:1px solid #e2e2e2; background:#fff; padding:6px 10px;
-      border-radius:8px; cursor:pointer; font-size:14px;
-    }
-    .controls button:hover { background:#fafafa; }
-    #stage { display:grid; place-items:center; padding:16px; }
-    #flipbook {
-      width:min(90vw, 1200px);
-      height:calc(min(90vw, 1200px) * 0.707); /* approx A-series aspect ratio */
-      margin:0 auto; background:#fafafa; border-radius:10px; overflow:hidden;
-      box-shadow:0 6px 30px rgba(0,0,0,.12); position:relative;
-    }
-    .pf-page canvas, .pf-page img { width:100%; height:100%; object-fit:contain; background:#fff; display:block; }
-    /* Subtle contact footer overlay */
-    .footer-overlay {
-      position:absolute; left:0; right:0; bottom:0;
-      background:rgba(255,255,255,.75); backdrop-filter:blur(2px);
-      font-size:12px; color:#222; text-align:center; padding:6px 10px;
-      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-    }
-    /* Loading overlay */
-    #loading {
-      position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
-      background:linear-gradient(180deg, rgba(255,255,255,.85), rgba(255,255,255,.65));
-      font-size:14px; color:#333;
-    }
-    .spinner {
-      width:28px; height:28px; border:3px solid var(--accent); border-top-color:#999;
-      border-radius:50%; animation:spin 1s linear infinite; margin-right:10px;
-    }
-    @keyframes spin { to { transform:rotate(360deg); } }
-  </style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/css/page-flip.css">
+<style>
+  :root { --accent:#eaeaea; --muted:#666; }
+  * { box-sizing: border-box; }
+  body {
+    margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    background:#f7f7f7; color:#111;
+  }
+  #shell { min-height:100vh; display:grid; grid-template-rows:auto 1fr auto; }
+  header, footer {
+    background:#fff; border:1px solid #eee; padding:8px 14px;
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .controls { display:flex; gap:6px; }
+  .controls button {
+    appearance:none; border:1px solid #e2e2e2; background:#fff; padding:6px 10px;
+    border-radius:8px; cursor:pointer; font-size:14px;
+  }
+  .controls button:hover { background:#fafafa; }
+  #stage { display:grid; place-items:center; padding:16px; }
+  #flipbook, #fallback {
+    width:min(90vw, 1200px);
+    height:calc(min(90vw, 1200px) * 0.707);
+    margin:0 auto; background:#fafafa; border-radius:10px; overflow:hidden;
+    box-shadow:0 6px 30px rgba(0,0,0,.12); position:relative;
+  }
+  .pf-page canvas, .pf-page img { width:100%; height:100%; object-fit:contain; background:#fff; display:block; }
+  /* Subtle contact footer overlay */
+  .footer-overlay {
+    position:absolute; left:0; right:0; bottom:0;
+    background:rgba(255,255,255,.75); backdrop-filter:blur(2px);
+    font-size:12px; color:#222; text-align:center; padding:6px 10px;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  /* Loading overlay */
+  #loading {
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    background:linear-gradient(180deg, rgba(255,255,255,.85), rgba(255,255,255,.65));
+    font-size:14px; color:#333;
+  }
+  .spinner {
+    width:28px; height:28px; border:3px solid var(--accent); border-top-color:#999;
+    border-radius:50%; animation:spin 1s linear infinite; margin-right:10px;
+  }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  #error {
+    display:none; position:absolute; inset:auto 12px 12px 12px;
+    background:#fff; border:1px solid var(--accent); color:#b00020;
+    padding:10px 12px; border-radius:10px; font-size:13px;
+  }
+  #fallback { display:none; }
+  #fallback iframe { width:100%; height:100%; border:0; background:#fff; }
+</style>
 </head>
 <body>
 <div id="shell">
   <header>
     <div><strong>Twin Valley Developer Information</strong></div>
     <div class="controls">
-      <button id="prev" title="Previous page">◀</button>
-      <button id="next" title="Next page">▶</button>
+      <button id="prev"   title="Previous page">◀</button>
+      <button id="next"   title="Next page">▶</button>
       <button id="spread" title="Toggle single/spread">Spread</button>
-      <button id="pdf" title="Download PDF">PDF</button>
+      <button id="pdf"    title="Download PDF">PDF</button>
     </div>
   </header>
 
   <div id="stage">
     <div id="flipbook">
       <div id="loading"><div class="spinner"></div><span>Loading Twin Valley Developer Information…</span></div>
+      <div id="error"></div>
     </div>
+    <div id="fallback"></div>
   </div>
 
   <footer>
@@ -78,7 +85,7 @@
   </footer>
 </div>
 
-<!-- PDF.js (stable UMD build) -->
+<!-- PDF.js (stable UMD build that works on GitHub Pages) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
 <script>
   pdfjsLib.GlobalWorkerOptions.workerSrc =
@@ -95,31 +102,46 @@
     secondary:{ name: "Alta",            phone: "", email: "", note: "Co-agent" }
   };
 
-  // PDF path (keeps the space safe)
-  const PDF_PATH_RAW = "Twin Valley Presentation.pdf";
-  const PDF_PATH = encodeURI(PDF_PATH_RAW);
+  // Try common filenames automatically
+  const PDF_CANDIDATES = [
+    "Twin Valley Presentation.pdf",
+    "brochure.pdf"
+  ];
 
-  const host = document.getElementById("flipbook");
-  const loading = document.getElementById("loading");
+  const host     = document.getElementById("flipbook");
+  const loading  = document.getElementById("loading");
   const pageinfo = document.getElementById("pageinfo");
+  const errorBox = document.getElementById("error");
+  const fallback = document.getElementById("fallback");
 
-  let pdf, flip, images = [];
+  let flip, images = [], PDF_PATH_RAW = null, PDF_PATH = null;
 
-  function footerOverlay() {
+  function footerOverlay(container) {
     const f = document.createElement("div");
     f.className = "footer-overlay";
     const left  = [CONTACTS.primary.name, CONTACTS.primary.phone, CONTACTS.primary.email].filter(Boolean).join(" • ");
     const right = [CONTACTS.secondary.name, CONTACTS.secondary.phone, CONTACTS.secondary.email].filter(Boolean).join(" • ");
     f.textContent = [left, right].filter(Boolean).join("  •  ");
-    host.appendChild(f);
+    container.appendChild(f);
   }
 
-  async function loadPDF() {
+  async function findExistingPdf() {
+    for (const name of PDF_CANDIDATES) {
+      try {
+        const res = await fetch(encodeURI(name), { method: "HEAD", cache: "no-store" });
+        if (res.ok) return name;
+      } catch (_) { /* ignore and try next */ }
+    }
+    return null;
+  }
+
+  async function loadPDF_viaPDFjs() {
     const task = pdfjsLib.getDocument({ url: PDF_PATH });
-    pdf = await task.promise;
+    const pdf  = await task.promise;
+
     for (let i = 1; i <= pdf.numPages; i++) {
       const page = await pdf.getPage(i);
-      const vp = page.getViewport({ scale: 1.5 }); // crisp, not huge
+      const vp = page.getViewport({ scale: 1.5 });
       const c = document.createElement("canvas");
       c.width = vp.width; c.height = vp.height;
       const ctx = c.getContext("2d", { alpha: false });
@@ -135,20 +157,46 @@
       maxShadowOpacity: .2, mobileScrollSupport: true
     });
     flip.loadFromImages(images);
-    footerOverlay();
+    footerOverlay(host);
     pageinfo.textContent = `Page 1 / ${flip.getPageCount()}`;
     flip.on("flip", () => {
       pageinfo.textContent = `Page ${flip.getCurrentPageIndex() + 1} / ${flip.getPageCount()}`;
     });
   }
 
+  function showError(msg, enableFallback = true) {
+    errorBox.style.display = "block";
+    errorBox.innerHTML = msg;
+    if (enableFallback && PDF_PATH) {
+      // basic embedded fallback — ensures visitors still see the brochure
+      fallback.style.display = "block";
+      host.style.display = "none";
+      fallback.innerHTML = `<iframe src="${PDF_PATH}" loading="lazy" title="Twin Valley Developer Information"></iframe>`;
+    }
+  }
+
   async function main() {
     try {
-      await loadPDF();
+      const found = await findExistingPdf();
+      if (!found) {
+        throw new Error("PDF not found. Ensure the file is in the repo root named “Twin Valley Presentation.pdf” or rename it to “brochure.pdf”.");
+      }
+      PDF_PATH_RAW = found;
+      PDF_PATH = encodeURI(PDF_PATH_RAW);
+
+      await loadPDF_viaPDFjs();
+
+      if (images.length === 0) {
+        throw new Error("PDF rendered zero pages.");
+      }
       initFlip();
     } catch (e) {
       console.error(e);
-      loading.innerHTML = "Could not render the PDF — please use the PDF button to download.";
+      showError(
+        `Could not render the PDF. <br><br><b>Quick fix:</b> rename your file to <code>brochure.pdf</code> in the repo root and refresh. 
+         <br><br>Technical: ${e && e.message ? e.message : e}`,
+        true
+      );
     } finally {
       loading.style.display = "none";
     }
@@ -159,18 +207,18 @@
   document.getElementById("prev").onclick   = () => flip?.flipPrev();
   document.getElementById("next").onclick   = () => flip?.flipNext();
   document.getElementById("spread").onclick = () => {
-    const i = flip?.getCurrentPageIndex?.() || 0;
+    const i   = flip?.getCurrentPageIndex?.() || 0;
     const cfg = flip?.getSettings?.() || { width:800, height:1131, size:"stretch", usePortrait:true, showCover:false };
     if (flip) flip.destroy();
     flip = new St.PageFlip(host, { ...cfg, usePortrait: !cfg.usePortrait });
     flip.loadFromImages(images);
-    footerOverlay();
+    footerOverlay(host);
     if (i) flip.turnToPage(i);
   };
   document.getElementById("pdf").onclick = () => {
     const a = document.createElement("a");
-    a.href = PDF_PATH;
-    a.download = PDF_PATH_RAW;
+    a.href = PDF_PATH || "brochure.pdf";
+    a.download = PDF_PATH_RAW || "brochure.pdf";
     a.click();
   };
 </script>
